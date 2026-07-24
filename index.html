@@ -1,34 +1,72 @@
-<script>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сокровища Сирен</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #1c2733;
+            color: #ffffff;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #2481cc;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #info {
+            margin-top: 30px;
+            font-size: 20px;
+            color: #4bb34b;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🧬 Сокровища Сирен</h2>
+    <button onclick="generateAndSend()">Испытать удачу</button>
+
+    <div id="info"></div>
+
+    <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Вставили твой реальный токен!
-        const BOT_TOKEN = '8898711498:AAEjsOmvU0HdWLqJNWTnreFCjsdXhr0hX9w'; 
+        const BOT_TOKEN = '8898711498:AAEjsOmvU0HdWLqJNWTnreFCjsdXhr0hX9w';
 
         async function generateAndSend() {
-            const resultText = "🎉 Твой результат: Выпал сектор 100!";
+            const resultText = "🎉 Вы выиграли: Главный приз Сирен!";
 
-            // 1. Показываем результат ПРЯМО НА ЭКРАНЕ приложения
             document.getElementById("info").innerText = resultText;
 
-            // 2. Получаем ID пользователя Telegram
             const userId = tg.initDataUnsafe?.user?.id;
 
             if (userId) {
-                // 3. Отправляем дубликат в чат Telegram БЕЗ закрытия приложения
                 try {
                     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             chat_id: userId,
-                            text: `📩 **Дублируем результат из приложения:**\n\n${resultText}`,
+                            text: `📩 **Твое сокровище:**\n\n${resultText}`,
                             parse_mode: 'Markdown'
                         })
                     });
                 } catch (e) {
-                    console.error("Ошибка отправки:", e);
+                    console.error("Ошибка:", e);
                 }
             }
         }
     </script>
+</body>
+</html>
