@@ -42,30 +42,17 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        const BOT_TOKEN = '8898711498:AAEjsOmvU0HdWLqJNWTnreFCjsdXhr0hX9w';
-
-        async function generateAndSend() {
+        function generateAndSend() {
             const resultText = "🎉 Вы выиграли: Главный приз Сирен!";
 
+            // 1. Показываем результат в мини-приложении
             document.getElementById("info").innerText = resultText;
 
-            const userId = tg.initDataUnsafe?.user?.id;
-
-            if (userId) {
-                try {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: userId,
-                            text: `📩 **Твое сокровище:**\n\n${resultText}`,
-                            parse_mode: 'Markdown'
-                        })
-                    });
-                } catch (e) {
-                    console.error("Ошибка:", e);
-                }
-            }
+            // 2. Отправляем данные напрямую боту через встроенный метод Telegram
+            // Небольшая задержка в 500мс, чтобы пользователь успел увидеть текст на экране
+            setTimeout(() => {
+                tg.sendData(resultText);
+            }, 500);
         }
     </script>
 </body>
