@@ -4,163 +4,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сокровища Сирен</title>
+    <!-- ВАЖНО: Подключение скрипта Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #1c1c1e;
-            color: white;
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: #fff;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
         }
-
         .wheel-container {
             position: relative;
             width: 300px;
             height: 300px;
         }
-
-        #wheel {
+        canvas {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 5px solid #fff;
-            transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
         }
-
-        .arrow {
+        .pointer {
             position: absolute;
-            top: -15px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 25px solid #ff453a;
+            border-top: 25px solid #ff0055;
             z-index: 10;
         }
-
-        .btn {
-            margin-top: 30px;
-            padding: 16px 32px;
+        button {
+            margin-top: 25px;
+            padding: 12px 24px;
             font-size: 18px;
-            font-weight: 600;
-            background-color: #0a84ff;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
             color: white;
             border: none;
-            border-radius: 14px;
+            border-radius: 25px;
             cursor: pointer;
-            width: 100%;
-            max-width: 280px;
-            transition: background-color 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
         }
-
-        .btn-claim {
-            background-color: #30d158;
-            display: none; /* Скрыта по умолчанию */
-        }
-
-        .btn:disabled {
-            background-color: #48484a;
+        button:disabled {
+            background: #555;
             cursor: not-allowed;
+            box-shadow: none;
         }
     </style>
 </head>
 <body>
 
     <div class="wheel-container">
-        <div class="arrow"></div>
+        <div class="pointer"></div>
         <canvas id="wheel" width="300" height="300"></canvas>
     </div>
 
-    <!-- Кнопка вращения -->
-    <button id="spin-btn" class="btn" onclick="spinWheel()">Крутить колесо!</button>
-
-    <!-- Кнопка получения подарка -->
-    <button id="claim-btn" class="btn btn-claim" onclick="sendReward()">🎁 Получить подарок</button>
+    <button id="spin-btn" onclick="spin()">🎰 Крутить колесо</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand(); // Разворачиваем на весь экран
 
-        const canvas = document.getElementById('wheel');
-        const ctx = canvas.getContext('2d');
-        const prizes = ["Скидка 10%", "Промокод 500Р", "Бесплатный кофе", "Попробуй еще!", "Скидка 20%", "Секретный приз"];
-        const colors = ["#ff9f0a", "#30d158", "#0a84ff", "#ffd60a", "#bf5af2", "#64d2ff"];
+        const prizes = [
+            "Скидка 10%",
+            "Брови в подарок",
+            "Скидка 500р",
+            "Уход для губ",
+            "Патчи в подарок",
+            "Скидка 15%"
+        ];
+
+        const colors = ["#ff4b5c", "#3a7bd5", "#00d2ff", "#ffb400", "#9b59b6", "#2ecc71"];
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
         const numSegments = prizes.length;
-        const segmentAngle = (2 * Math.PI) / numSegments;
-
-        let wonPrize = "";
-
-        // Отрисовка колеса
-        for (let i = 0; i < numSegments; i++) {
-            ctx.beginPath();
-            ctx.fillStyle = colors[i];
-            ctx.moveTo(150, 150);
-            ctx.arc(150, 150, 150, i * segmentAngle, (i + 1) * segmentAngle);
-            ctx.fill();
-
-            ctx.save();
-            ctx.translate(150, 150);
-            ctx.rotate(i * segmentAngle + segmentAngle / 2);
-            ctx.textAlign = "right";
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 13px sans-serif";
-            ctx.fillText(prizes[i], 140, 5);
-            ctx.restore();
-        }
-
+        const anglePerSegment = (2 * Math.PI) / numSegments;
+        let currentAngle = 0;
         let isSpinning = false;
 
-        function spinWheel() {
-            if (isSpinning) return;
-            isSpinning = true;
-            
-            const spinBtn = document.getElementById('spin-btn');
-            spinBtn.disabled = true;
+        function drawWheel() {
+            for (let i = 0; i < numSegments; i++) {
+                const angle = currentAngle + i * anglePerSegment;
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(150, 150);
+                ctx.arc(150, 150, 150, angle, angle + anglePerSegment);
+                ctx.lineTo(150, 150);
+                ctx.fill();
 
-            const winningIndex = Math.floor(Math.random() * numSegments);
-            wonPrize = prizes[winningIndex];
-
-            const degreesPerSegment = 360 / numSegments;
-            const stopAngle = 360 * 5 + (270 - (winningIndex * degreesPerSegment + degreesPerSegment / 2));
-
-            canvas.style.transform = `rotate(${stopAngle}deg)`;
-
-            setTimeout(() => {
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-
-                spinBtn.style.display = 'none';
-                const claimBtn = document.getElementById('claim-btn');
-                claimBtn.style.display = 'block';
-            }, 4000);
+                ctx.save();
+                ctx.translate(150, 150);
+                ctx.rotate(angle + anglePerSegment / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 14px Arial";
+                ctx.fillText(prizes[i], 140, 5);
+                ctx.restore();
+            }
         }
 
-        // Обновленная функция отправки приза
-        function sendReward() {
-            const claimBtn = document.getElementById('claim-btn');
-            claimBtn.disabled = true;
-            claimBtn.innerText = "Отправка...";
+        drawWheel();
 
-            try {
-                // Отправляем данные в Telegram
-                tg.sendData(JSON.stringify({ prize: wonPrize }));
-            } catch (e) {
-                alert("Ошибка отправки. Убедитесь, что запускаете колесо через кнопку из чата бота.");
+        function spin() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const btn = document.getElementById("spin-btn");
+            btn.disabled = true;
+
+            const totalRotation = Math.PI * 2 * 5 + Math.random() * Math.PI * 2;
+            const startAngle = currentAngle;
+            const startTime = performance.now();
+            const duration = 4000;
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                if (elapsed < duration) {
+                    const progress = elapsed / duration;
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    currentAngle = startAngle + totalRotation * easeOut;
+                    drawWheel();
+                    requestAnimationFrame(animate);
+                } else {
+                    currentAngle = (startAngle + totalRotation) % (Math.PI * 2);
+                    drawWheel();
+
+                    // Вычисляем победителя
+                    const normalizedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
+                    const winningIndex = Math.floor((normalizedAngle + Math.PI / 2) % (2 * Math.PI) / anglePerSegment);
+                    const winningPrize = prizes[winningIndex];
+
+                    btn.innerText = "🎁 Получить подарок: " + winningPrize;
+                    btn.disabled = false;
+                    
+                    // Меняем функцию кнопки на отправку данных
+                    btn.onclick = function() {
+                        try {
+                            // Проверяем, запущено ли приложение в Telegram
+                            if (tg && tg.sendData) {
+                                tg.sendData(winningPrize);
+                                tg.close(); // Закрываем Web App
+                            } else {
+                                alert("Ошибка: Откройте колесо внутри приложения Telegram!");
+                            }
+                        } catch (e) {
+                            alert("Ошибка отправки: " + e.message);
+                        }
+                    };
+                }
             }
-
-            // Закрываем окно Mini App
-            setTimeout(() => {
-                tg.close();
-            }, 300);
+            requestAnimationFrame(animate);
         }
     </script>
 </body>
