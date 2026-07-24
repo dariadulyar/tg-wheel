@@ -7,14 +7,48 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
-            padding: 40px 20px;
             background-color: #1c2733;
             color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+
+        h2 { margin-bottom: 10px; }
+
+        /* Контейнер колеса и стрелки */
+        .wheel-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 20px auto;
+        }
+
+        /* Указатель (стрелка сверху) */
+        .pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #ff4757;
+            z-index: 10;
+        }
+
+        canvas {
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
         button {
-            padding: 15px 30px;
+            padding: 14px 28px;
             font-size: 18px;
             font-weight: bold;
             background-color: #2481cc;
@@ -22,19 +56,35 @@
             border: none;
             border-radius: 12px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 15px;
+            transition: 0.2s;
         }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
         #info {
-            margin-top: 30px;
+            margin-top: 20px;
             font-size: 20px;
-            color: #4bb34b;
+            font-weight: bold;
+            color: #2ed573;
+            min-height: 30px;
         }
     </style>
 </head>
 <body>
 
     <h2>🧬 Сокровища Сирен</h2>
-    <button onclick="generateAndSend()">Испытать удачу</button>
+    <p style="color: #aaa; margin: 0;">Крутите колесо удачи!</p>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="320" height="320"></canvas>
+    </div>
+
+    <button id="spin-btn" onclick="spinWheel()">Испытать удачу 🎡</button>
 
     <div id="info"></div>
 
@@ -42,17 +92,109 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        function generateAndSend() {
-            const resultText = "🎉 Вы выиграли: Главный приз Сирен!";
+        // Список твоих призов
+        const prizes = [
+            "Обнять админа 🤗",
+            "Сфоткаться с директором 📸",
+            "СММ пылесосит вам прихожую 🧹",
+            "Мастер облизывает вашу пяточку 👅",
+            "Вы кормите мастера 🍔",
+            "10 минут в душевой кабинке с СММ 🚿"
+        ];
 
-            // 1. Показываем результат в мини-приложении
-            document.getElementById("info").innerText = resultText;
+        // Цвета для секторов
+        const colors = ["#ff6b6b", "#4ecdc4", "#ffe66d", "#1a535c", "#ff9f43", "#a55eea"];
 
-            // 2. Отправляем данные напрямую боту через встроенный метод Telegram
-            // Небольшая задержка в 500мс, чтобы пользователь успел увидеть текст на экране
-            setTimeout(() => {
-                tg.sendData(resultText);
-            }, 500);
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
+        const center = canvas.width / 2;
+        const numPrizes = prizes.length;
+        const arc = (2 * Math.PI) / numPrizes;
+
+        let currentAngle = 0;
+        let isSpinning = false;
+
+        // Рисуем колесо с текстом
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numPrizes; i++) {
+                const angle = currentAngle + i * arc;
+                
+                // Сектор
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, center - 5, angle, angle + arc);
+                ctx.lineTo(center, center);
+                ctx.fill();
+                ctx.stroke();
+
+                // Текст приза
+                ctx.save();
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 11px sans-serif";
+                ctx.translate(
+                    center + Math.cos(angle + arc / 2) * (center - 60),
+                    center + Math.sin(angle + arc / 2) * (center - 60)
+                );
+                ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                
+                // Обрезаем длинный текст для колеса, чтобы влез
+                let text = prizes[i];
+                if (text.length > 18) text = text.substring(0, 16) + "..";
+                
+                ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+                ctx.restore();
+            }
+        }
+
+        drawWheel();
+
+        // Функция вращения
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const btn = document.getElementById("spin-btn");
+            btn.disabled = true;
+
+            // Выбираем случайный приз
+            const prizeIndex = Math.floor(Math.random() * numPrizes);
+            const selectedPrize = prizes[prizeIndex];
+
+            // Считаем угол остановки (стрелка вверху = -90 градусов)
+            const extraRounds = 5 * 2 * Math.PI; // 5 полных оборотов
+            const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
+            const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
+
+            const duration = 4000; // 4 секунды
+            const start = performance.now();
+
+            function animate(time) {
+                let progress = (time - start) / duration;
+                if (progress > 1) progress = 1;
+
+                // Замедление в конце (ease-out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentAngle = currentAngle + (targetAngle - currentAngle) * (easeOut * 0.05);
+
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Колесо остановилось!
+                    document.getElementById("info").innerText = "🎉 Выиграно: " + selectedPrize;
+                    
+                    // Отправляем данные боту и закрываем
+                    setTimeout(() => {
+                        tg.sendData(selectedPrize);
+                    }, 1200);
+                }
+            }
+
+            requestAnimationFrame(animate);
         }
     </script>
 </body>
