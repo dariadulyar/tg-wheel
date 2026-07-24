@@ -114,14 +114,14 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // 8 Ваших призов
+        // 8 ровно распределенных призов из вашего ТЗ
         const prizes = [
             "Обнять админа",
             "Сфоткаться с директором",
-            "СММ пылесосит прихожую",
-            "Мастер облизывает пяточку",
+            "СММ пылесосит вам прихожую",
+            "Мастер облизывает вашу пяточку",
             "Вы кормите мастера",
-            "10 мин в душевой с СММ",
+            "10 минут в душевой кабинке с СММ",
             "Обнять админа",
             "Сфоткаться с директором"
         ];
@@ -133,12 +133,10 @@
         const anglePerSegment = (2 * Math.PI) / numSegments;
         let currentAngle = 0;
         let isSpinning = false;
-        let winningPrize = "";
 
-        // ПРОВЕРКА: Была ли рулетка уже прокручена ранее?
+        // ПРОВЕРКА: Было ли колесо уже прокручено ранее (Шаг 8)
         const savedPrize = localStorage.getItem("siren_won_prize");
         if (savedPrize) {
-            winningPrize = savedPrize;
             showResultScreen(savedPrize);
         } else {
             drawWheel();
@@ -155,7 +153,7 @@
                 ctx.lineTo(160, 160);
                 ctx.fill();
 
-                // Текст
+                // Отрисовка текста
                 ctx.save();
                 ctx.translate(160, 160);
                 ctx.rotate(angle + anglePerSegment / 2);
@@ -177,7 +175,7 @@
             const totalRotation = Math.PI * 2 * 6 + Math.random() * Math.PI * 2;
             const startAngle = currentAngle;
             const startTime = performance.now();
-            const duration = 4000; // Вращение 4 секунды
+            const duration = 4000;
 
             function animate(currentTime) {
                 const elapsed = currentTime - startTime;
@@ -191,18 +189,17 @@
                     currentAngle = (startAngle + totalRotation) % (Math.PI * 2);
                     drawWheel();
 
-                    // Вычисляем выпавший приз
-                    const normalizedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
-                    const winningIndex = Math.floor((normalizedAngle + Math.PI / 2) % (2 * Math.PI) / anglePerSegment);
-                    winningPrize = prizes[winningIndex];
+                    // Корректный расчет сектора с учетом верхней стрелки (угол -90 градусов / 3*PI/2)
+                    const pointerAngle = (3 * Math.PI / 2 - currentAngle) % (2 * Math.PI);
+                    const normalizedPointerAngle = (pointerAngle + 2 * Math.PI) % (2 * Math.PI);
+                    const winningIndex = Math.floor(normalizedPointerAngle / anglePerSegment);
+                    const winningPrize = prizes[winningIndex];
 
-                    // Сохраняем выигрыш локально, чтобы не пропал при закрытии
-                    localStorage.setItem("siren_won_prize", winningPrize);
+                    // Сохраняем результат в LocalStorage сразу после прокрутки
+                    localStorage.getItem("siren_won_prize") || localStorage.setItem("siren_won_prize", winningPrize);
 
-                    // Меняем кнопку на "Получить подарок"
-                    btn.innerText = "🎁 Получить подарок";
-                    btn.disabled = false;
-                    btn.onclick = claimPrize;
+                    // Меняем экран или переключаем кнопку
+                    showResultScreen(winningPrize);
                 }
             }
             requestAnimationFrame(animate);
@@ -215,10 +212,13 @@
         }
 
         function claimPrize() {
+            const prizeToClaim = localStorage.getItem("siren_won_prize");
             if (tg && tg.sendData) {
-                // Очищаем локальное сохранение после успешной отправки
-                localStorage.removeItem("siren_won_prize");
-                tg.sendData(winningPrize);
+                if (prizeToClaim) {
+                    // Очищаем сохраненный выигрыш только после отправки данных в чат
+                    localStorage.removeItem("siren_won_prize");
+                    tg.sendData(prizeToClaim);
+                }
                 tg.close();
             } else {
                 alert("Откройте приложение внутри Telegram!");
