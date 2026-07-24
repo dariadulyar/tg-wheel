@@ -84,7 +84,7 @@
     <!-- Кнопка вращения -->
     <button id="spin-btn" class="btn" onclick="spinWheel()">Крутить колесо!</button>
 
-    <!-- Кнопка получения подарка (появится после вращения) -->
+    <!-- Кнопка получения подарка -->
     <button id="claim-btn" class="btn btn-claim" onclick="sendReward()">🎁 Получить подарок</button>
 
     <script>
@@ -138,16 +138,29 @@
             setTimeout(() => {
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-                // Прячем кнопку "Крутить" и показываем "Получить подарок"
                 spinBtn.style.display = 'none';
                 const claimBtn = document.getElementById('claim-btn');
                 claimBtn.style.display = 'block';
             }, 4000);
         }
 
-        // Функция отправки приза в бота
+        // Обновленная функция отправки приза
         function sendReward() {
-            tg.sendData(JSON.stringify({ prize: wonPrize }));
+            const claimBtn = document.getElementById('claim-btn');
+            claimBtn.disabled = true;
+            claimBtn.innerText = "Отправка...";
+
+            try {
+                // Отправляем данные в Telegram
+                tg.sendData(JSON.stringify({ prize: wonPrize }));
+            } catch (e) {
+                alert("Ошибка отправки. Убедитесь, что запускаете колесо через кнопку из чата бота.");
+            }
+
+            // Закрываем окно Mini App
+            setTimeout(() => {
+                tg.close();
+            }, 300);
         }
     </script>
 </body>
