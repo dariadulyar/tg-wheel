@@ -3,226 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сокровища Сирен</title>
+    <title>Мое Мини-Приложение</title>
+    <!-- Обязательный скрипт Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #121212;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .wheel-container {
-            position: relative;
-            width: 320px;
-            height: 320px;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            box-shadow: 0 0 25px rgba(255, 0, 85, 0.4);
-        }
-
-        .pointer {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 16px solid transparent;
-            border-right: 16px solid transparent;
-            border-top: 28px solid #ff0055;
-            z-index: 10;
-        }
-
-        button {
-            margin-top: 30px;
-            padding: 14px 28px;
-            font-size: 18px;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff0055, #ff5500);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 0, 85, 0.4);
-            transition: all 0.2s ease;
-        }
-
-        button:active {
-            transform: scale(0.95);
-        }
-
-        button:disabled {
-            background: #444;
-            color: #888;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        /* Экран сохраненного выигрыша */
-        #result-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
+            font-family: sans-serif;
             text-align: center;
             padding: 20px;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
         }
-
-        #result-screen h2 {
-            font-size: 24px;
-            color: #ff0055;
-            margin-bottom: 10px;
-        }
-
-        #result-screen p {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 25px;
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН 1: КОЛЕСО -->
-    <div id="game-screen" style="display: flex; flex-direction: column; align-items: center;">
-        <div class="wheel-container">
-            <div class="pointer"></div>
-            <canvas id="wheel" width="320" height="320"></canvas>
-        </div>
-        <button id="main-btn" onclick="spin()">🎰 Испытать удачу</button>
-    </div>
+    <h2>Привет! 👋</h2>
+    <p id="info">Нажми на кнопку ниже</p>
 
-    <!-- ЭКРАН 2: УЖЕ ЕСТЬ ВЫИГРЫШ -->
-    <div id="result-screen">
-        <h2>🎉 Ваш выигрыш ждёт вас!</h2>
-        <p id="saved-prize-text"></p>
-        <button onclick="claimPrize()">🎁 Получить подарок</button>
-    </div>
+    <button onclick="sendResult()">Сгенерировать информацию</button>
 
     <script>
+        // Инициализируем Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand(); // Разворачиваем на весь экран
 
-        // 8 ровно распределенных призов из вашего ТЗ
-        const prizes = [
-            "Обнять админа",
-            "Сфоткаться с директором",
-            "СММ пылесосит вам прихожую",
-            "Мастер облизывает вашу пяточку",
-            "Вы кормите мастера",
-            "10 минут в душевой кабинке с СММ",
-            "Обнять админа",
-            "Сфоткаться с директором"
-        ];
+        function sendResult() {
+            const secretText = "🎉 Твое предсказание: Сегодня тебя ждет отличный день!";
+            
+            // 1. Показываем текст прямо в мини-приложении
+            document.getElementById("info").innerText = secretText;
 
-        const colors = ["#ff4b5c", "#2ecc71", "#3a7bd5", "#ffb400", "#9b59b6", "#e67e22", "#1abc9c", "#e74c3c"];
-        const canvas = document.getElementById("wheel");
-        const ctx = canvas.getContext("2d");
-        const numSegments = prizes.length;
-        const anglePerSegment = (2 * Math.PI) / numSegments;
-        let currentAngle = 0;
-        let isSpinning = false;
-
-        // ПРОВЕРКА: Было ли колесо уже прокручено ранее (Шаг 8)
-        const savedPrize = localStorage.getItem("siren_won_prize");
-        if (savedPrize) {
-            showResultScreen(savedPrize);
-        } else {
-            drawWheel();
-        }
-
-        function drawWheel() {
-            ctx.clearRect(0, 0, 320, 320);
-            for (let i = 0; i < numSegments; i++) {
-                const angle = currentAngle + i * anglePerSegment;
-                ctx.beginPath();
-                ctx.fillStyle = colors[i % colors.length];
-                ctx.moveTo(160, 160);
-                ctx.arc(160, 160, 160, angle, angle + anglePerSegment);
-                ctx.lineTo(160, 160);
-                ctx.fill();
-
-                // Отрисовка текста
-                ctx.save();
-                ctx.translate(160, 160);
-                ctx.rotate(angle + anglePerSegment / 2);
-                ctx.textAlign = "right";
-                ctx.fillStyle = "#fff";
-                ctx.font = "bold 11px Arial";
-                ctx.fillText(prizes[i], 150, 4);
-                ctx.restore();
-            }
-        }
-
-        function spin() {
-            if (isSpinning) return;
-            isSpinning = true;
-
-            const btn = document.getElementById("main-btn");
-            btn.disabled = true;
-
-            const totalRotation = Math.PI * 2 * 6 + Math.random() * Math.PI * 2;
-            const startAngle = currentAngle;
-            const startTime = performance.now();
-            const duration = 4000;
-
-            function animate(currentTime) {
-                const elapsed = currentTime - startTime;
-                if (elapsed < duration) {
-                    const progress = elapsed / duration;
-                    const easeOut = 1 - Math.pow(1 - progress, 3);
-                    currentAngle = startAngle + totalRotation * easeOut;
-                    drawWheel();
-                    requestAnimationFrame(animate);
-                } else {
-                    currentAngle = (startAngle + totalRotation) % (Math.PI * 2);
-                    drawWheel();
-
-                    // Корректный расчет сектора с учетом верхней стрелки (угол -90 градусов / 3*PI/2)
-                    const pointerAngle = (3 * Math.PI / 2 - currentAngle) % (2 * Math.PI);
-                    const normalizedPointerAngle = (pointerAngle + 2 * Math.PI) % (2 * Math.PI);
-                    const winningIndex = Math.floor(normalizedPointerAngle / anglePerSegment);
-                    const winningPrize = prizes[winningIndex];
-
-                    // Сохраняем результат в LocalStorage сразу после прокрутки
-                    localStorage.getItem("siren_won_prize") || localStorage.setItem("siren_won_prize", winningPrize);
-
-                    // Меняем экран или переключаем кнопку
-                    showResultScreen(winningPrize);
-                }
-            }
-            requestAnimationFrame(animate);
-        }
-
-        function showResultScreen(prize) {
-            document.getElementById("game-screen").style.display = "none";
-            document.getElementById("result-screen").style.display = "flex";
-            document.getElementById("saved-prize-text").innerText = `Ваш приз: "${prize}"`;
-        }
-
-        function claimPrize() {
-            const prizeToClaim = localStorage.getItem("siren_won_prize");
-            if (tg && tg.sendData) {
-                if (prizeToClaim) {
-                    // Очищаем сохраненный выигрыш только после отправки данных в чат
-                    localStorage.removeItem("siren_won_prize");
-                    tg.sendData(prizeToClaim);
-                }
-                tg.close();
-            } else {
-                alert("Откройте приложение внутри Telegram!");
-            }
+            // 2. Отправляем эти же данные обратно боту
+            tg.sendData(secretText);
         }
     </script>
 </body>
