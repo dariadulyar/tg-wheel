@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо Удачи</title>
+    <!-- Подключаем официальный скрипт Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Подключаем библиотеки для анимации салюта -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #1c1c1e;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 5px solid #fff;
+            transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);
+        }
+
+        .arrow {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid red;
+            z-index: 10;
+        }
+
+        button {
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #2ea6ff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wheel-container">
+        <div class="arrow"></div>
+        <canvas id="wheel" width="300" height="300"></canvas>
+    </div>
+
+    <button id="spin-btn" onclick="spinWheel()">Крутить колесо!</button>
+
+    <script>
+        // Инициализируем Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Раскрываем окно на весь экран
+
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const prizes = ["Скидка 10%", "Промокод 500Р", "Бесплатный кофе", "Попробуй еще!", "Скидка 20%", "Секретный приз"];
+        const colors = ["#FF5733", "#33FF57", "#3357FF", "#F3FF33", "#FF33F3", "#33FFF5"];
+        const numSegments = prizes.length;
+        const segmentAngle = (2 * Math.PI) / numSegments;
+
+        // Рисуем колесо
+        for (let i = 0; i < numSegments; i++) {
+            ctx.beginPath();
+            ctx.fillStyle = colors[i];
+            ctx.moveTo(150, 150);
+            ctx.arc(150, 150, 150, i * segmentAngle, (i + 1) * segmentAngle);
+            ctx.fill();
+
+            // Текст на секторах
+            ctx.save();
+            ctx.translate(150, 150);
+            ctx.rotate(i * segmentAngle + segmentAngle / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText(prizes[i], 140, 5);
+            ctx.restore();
+        }
+
+        let isSpinning = false;
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+
+            // Выбираем случайный сектор (или жестко забей индекс, если хочешь контролировать призы!)
+            const winningIndex = Math.floor(Math.random() * numSegments);
+            const prize = prizes[winningIndex];
+
+            // Рассчитываем угол вращения (5 полных оборотов + угол до приза)
+            const degreesPerSegment = 360 / numSegments;
+            // Учитываем смещение стрелки наверх (270 градусов)
+            const stopAngle = 360 * 5 + (270 - (winningIndex * degreesPerSegment + degreesPerSegment / 2));
+
+            canvas.style.transform = `rotate(${stopAngle}deg)`;
+
+            setTimeout(() => {
+                // Анимация салюта
+                confetti();
+
+                // Отправляем данные обратно в Telegram-бота!
+                setTimeout(() => {
+                    tg.sendData(JSON.stringify({ prize: prize }));
+                }, 1500);
+
+            }, 4000); // 4 секунды крутится
+        }
+    </script>
+</body>
+</html>
