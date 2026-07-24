@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мое Мини-Приложение</title>
-    <!-- Обязательный скрипт Telegram -->
+    <title>Мини-Приложение</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -22,30 +21,55 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            margin-top: 15px;
+        }
+        #info {
             margin-top: 20px;
+            font-weight: bold;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
 
-    <h2>Привет! 👋</h2>
-    <p id="info">Нажми на кнопку ниже</p>
+    <h2>Мини-приложение 🎡</h2>
+    <button onclick="generateAndSend()">Сгенерировать</button>
 
-    <button onclick="sendResult()">Сгенерировать информацию</button>
+    <!-- Сюда выводим текст ВНУТРИ приложения -->
+    <div id="info"></div>
 
     <script>
-        // Инициализируем Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        tg.expand();
 
-        function sendResult() {
-            const secretText = "🎉 Твое предсказание: Сегодня тебя ждет отличный день!";
-            
-            // 1. Показываем текст прямо в мини-приложении
-            document.getElementById("info").innerText = secretText;
+        // ⚠️ ВСТАВЬ СЮДА ТОКЕН СВОЕГО БОТА
+        const BOT_TOKEN = 'ТВОЙ_ТОКЕН_БОТА'; 
 
-            // 2. Отправляем эти же данные обратно боту
-            tg.sendData(secretText);
+        async function generateAndSend() {
+            const resultText = "🎉 Твое результат: Выпал сектор 100!";
+
+            // 1. Показываем результат ПРЯМО НА ЭКРАНЕ приложения
+            document.getElementById("info").innerText = resultText;
+
+            // 2. Получаем ID пользователя Telegram
+            const userId = tg.initDataUnsafe?.user?.id;
+
+            if (userId) {
+                // 3. Отправляем дубликат в чат Telegram БЕЗ закрытия приложения
+                try {
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: userId,
+                            text: `📩 **Дублируем результат из приложения:**\n\n${resultText}`,
+                            parse_mode: 'Markdown'
+                        })
+                    });
+                } catch (e) {
+                    console.error("Ошибка отправки:", e);
+                }
+            }
         }
     </script>
 </body>
