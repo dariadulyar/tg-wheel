@@ -19,22 +19,24 @@
             align-items: center;
         }
 
-        /* Карточка в стиле Таро */
+        /* Карточка в стиле Таро (делаем её relative, чтобы кот позиционировался относительно неё) */
         .tarot-card {
             position: relative;
             background: #fcf8f2;
             border: 4px solid #d4be8a;
             border-radius: 20px;
             padding: 15px 10px;
+            padding-top: 40px; /* Добавили отступ сверху, чтобы заголовок не прилипал */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             max-width: 360px;
             width: 100%;
             box-sizing: border-box;
+            overflow: hidden; /* Чтобы огромный кот не вылезал за границы карточки */
         }
 
         /* Заголовок сверху */
         .card-header {
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         .card-header h2 {
@@ -45,32 +47,30 @@
             text-transform: uppercase;
         }
 
-        /* Контейнер для кота (исправили слишком большой отступ на аккуратный) */
+        /* Кот через абсолютное позиционирование — теперь он сядет куда скажем */
         .cat-banner {
-            width: 100%;
-            height: auto;
-            display: flex;
-            justify-content: center;
-            margin-top: -10px;
-            margin-bottom: -35px;
+            position: absolute;
+            top: 50px; /* Регулируй это число, чтобы опустить/поднять кота относительно верха карточки */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px; /* Твой любимый размер */
             z-index: 20;
-            position: relative;
+            pointer-events: none; /* Чтобы кот не перекрывал клики, если попадет на кнопку */
         }
 
         .cat-banner img {
-            width: 500px;
-            max-width: none;
+            width: 100%;
             height: auto;
             object-fit: contain;
             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
         }
 
-        /* Контейнер колеса */
+        /* Контейнер колеса (добавили отступ сверху, чтобы освободить место под кота) */
         .wheel-container {
             position: relative;
             width: 290px;
             height: 290px;
-            margin: 0 auto;
+            margin: 225px auto 0 auto; /* Отодвигаем колесо вниз, чтобы кот лег на него сверху */
         }
 
         /* Стрелка сверху */
@@ -108,7 +108,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             transition: 0.2s;
             position: relative;
-            z-index: 40; /* Гарантирует, что кнопка кликабельна поверх других слоев */
+            z-index: 40;
         }
 
         button:active {
@@ -150,6 +150,7 @@
             <h2>🎉 Нам 1 год!</h2>
         </div>
 
+        <!-- Кот сидит абсолютно поверх карточки -->
         <div class="cat-banner">
             <img src="cat_card.png" alt="Кот на колесе">
         </div>
@@ -159,7 +160,6 @@
             <canvas id="wheel" width="290" height="290"></canvas>
         </div>
 
-        <!-- Убрали конфликтный inline onclick, вешаем событие надежно через JS -->
         <button id="spin-btn">Испытать удачу 🎡</button>
 
         <div id="info"></div>
@@ -249,7 +249,6 @@
 
         drawWheel();
 
-        // Надежная привязка клика через JS
         document.getElementById("spin-btn").addEventListener("click", spinWheel);
 
         function spinWheel() {
@@ -274,8 +273,6 @@
                 let progress = (time - start) / duration;
                 if (progress > 1) progress = 1;
 
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                // Плавное движение к целевому углу
                 currentAngle += (targetAngle - currentAngle) * 0.1;
 
                 drawWheel();
@@ -288,7 +285,6 @@
 
                     document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #8c6d3b; font-size: 18px;">${selectedPrize}</span>`;
 
-                    // Отправка данных или вывод в консоль
                     setTimeout(() => {
                         if (tg && tg.sendData) {
                             tg.sendData(selectedPrize);
