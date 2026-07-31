@@ -191,7 +191,7 @@
 
         // Настройка весов (вероятностей) для каждого приза по порядку:
         // Сейчас шансы равны (везде по 10). Если захочешь изменить вероятность, просто меняй числа.
-        const weights = [10, 10, 10, 10, 10, 10];
+        const weights = [10, 10, 10, 15, 35, 20];
 
         function getRandomPrizeIndex() {
             const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
