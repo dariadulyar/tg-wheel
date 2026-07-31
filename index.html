@@ -30,23 +30,23 @@
             width: 100%;
             box-sizing: border-box;
         }
-
-        /* Контейнер для кота с референса, который накладывается поверх колеса */
+        /* Контейнер для кота */
         .cat-banner {
             width: 100%;
-            max-height: 150px;
+            height: auto;
             display: flex;
             justify-content: center;
-            margin-bottom: -15px; /* Смещаем чуть ниже, чтобы лапки лежали на колесе */
+            margin-bottom: -35px; /* Сдвигаем кота ниже, чтобы он лег на колесо */
             z-index: 20;
             position: relative;
         }
 
         .cat-banner img {
-            width: 85%;
+            width: 130px; /* Увеличили кота в пикселях (или можешь поставить width: 140%) */
+            max-width: none; /* Разрешаем ему быть больше контейнера */
             height: auto;
             object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
         }
 
         /* Контейнер колеса */
