@@ -7,92 +7,146 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Georgia', serif;
             text-align: center;
-            background-color: #1c2733;
-            color: #ffffff;
+            /* Цвет старой бумаги / пергамента из стиля Таро */
+            background-color: #f4eee1;
+            color: #4a3b32;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        h2 { margin-bottom: 10px; }
-
-        /* Контейнер колеса и стрелки */
-        .wheel-container {
+        /* Карточка Таро с золотой рамкой */
+        .tarot-card {
+            background-color: #fbf8f2;
+            border: 4px solid #d4af37; /* Золотой цвет рамки */
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(74, 59, 50, 0.2);
+            width: 100%;
+            max-width: 360px;
+            padding: 15px 10px;
+            box-sizing: border-box;
             position: relative;
-            width: 320px;
-            height: 320px;
-            margin: 20px auto;
         }
 
-        /* Указатель (стрелка сверху) */
+        /* Верхний/нижний колонтитул карты (символы X) */
+        .card-header, .card-footer {
+            font-size: 16px;
+            color: #b8973e;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 5px 0;
+        }
+
+        h2 { 
+            margin: 5px 0 2px 0; 
+            font-size: 22px; 
+            color: #3b2d24;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #7c6857;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        /* Контейнер колеса */
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 15px auto;
+        }
+
+        /* Указатель (стрелка) под стиль золота */
         .pointer {
             position: absolute;
-            top: -10px;
+            top: -5px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 25px solid #ff4757;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 22px solid #d4af37;
             z-index: 10;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
         }
 
         canvas {
             border-radius: 50%;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border: 4px solid #d4af37;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         }
 
+        /* Кнопка в стиле благородного золота/бронзы */
         button {
-            padding: 14px 28px;
-            font-size: 18px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-family: 'Georgia', serif;
             font-weight: bold;
-            background-color: #2481cc;
-            color: #ffffff;
-            border: none;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #e6c66e 0%, #c59b27 100%);
+            color: #3b2d24;
+            border: 2px solid #a88420;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(197, 155, 39, 0.3);
             transition: 0.2s;
         }
 
+        button:active {
+            transform: scale(0.97);
+        }
+
         button:disabled {
-            background-color: #555;
+            background: #d3c7b4;
+            border-color: #b5a58e;
+            color: #887b6a;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         #info {
-            margin-top: 20px;
-            font-size: 20px;
+            margin-top: 15px;
+            font-size: 16px;
             font-weight: bold;
-            color: #2ed573;
-            min-height: 30px;
+            color: #2c6b48;
+            min-height: 25px;
         }
     </style>
 </head>
 <body>
 
-    <h2>🧬 Сокровища Сирен</h2>
-    <p style="color: #aaa; margin: 0;">Крутите колесо удачи!</p>
+    <div class="tarot-card">
+        <div class="card-header">Ⅹ</div>
+        
+        <h2>Сокровища Сирен</h2>
+        <div class="subtitle">Студия Сирена • 1 год</div>
 
-    <div class="wheel-container">
-        <div class="pointer"></div>
-        <canvas id="wheel" width="320" height="320"></canvas>
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <canvas id="wheel" width="300" height="300"></canvas>
+        </div>
+
+        <button id="spin-btn" onclick="spinWheel()">Испытать удачу 🎡</button>
+
+        <div id="info"></div>
+
+        <div class="card-footer" style="margin-top: 15px;">WHEEL OF FORTUNE</div>
+        <div class="card-header">Ⅹ</div>
     </div>
-
-    <button id="spin-btn" onclick="spinWheel()">Испытать удачу 🎡</button>
-
-    <div id="info"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Список призов
+        // Твои призы
         const prizes = [
             "Обнять админа 🤗",
             "Сфоткаться с директором 📸",
@@ -102,8 +156,8 @@
             "10 мин в душе с СММ 🚿"
         ];
 
-        // Цвета для секторов
-        const colors = ["#ff6b6b", "#4ecdc4", "#ffe66d", "#1a535c", "#ff9f43", "#a55eea"];
+        // Винтажные пастельные цвета секций (гармонируют с референсом карты Таро)
+        const colors = ["#f2dfce", "#d8ebd9", "#d6e5ec", "#f5e6cc", "#e8d7ea", "#faedcd"];
 
         const canvas = document.getElementById("wheel");
         const ctx = canvas.getContext("2d");
@@ -114,7 +168,7 @@
         let currentAngle = 0;
         let isSpinning = false;
 
-        // Функция для разделения длинного текста на 2 строки
+        // Делим текст на 2 строки для читаемости
         function getLines(text) {
             const words = text.split(" ");
             let line1 = "";
@@ -130,7 +184,7 @@
             return [line1, line2];
         }
 
-        // Рисуем колесо с читаемым многострочным текстом
+        // Рисуем колесо в стиле Таро
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -141,38 +195,54 @@
                 ctx.beginPath();
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.moveTo(center, center);
-                ctx.arc(center, center, center - 5, angle, angle + arc);
+                ctx.arc(center, center, center - 4, angle, angle + arc);
                 ctx.lineTo(center, center);
                 ctx.fill();
+                
+                // Золотая граница секторов
+                ctx.strokeStyle = "#e2c478";
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
 
                 // Текст приза
                 ctx.save();
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 10px sans-serif";
+                ctx.fillStyle = "#4a3b32"; // Темно-коричневый винтажный цвет текста
+                ctx.font = "bold 10px Georgia, serif";
                 
-                // Сдвигаем текст ближе к внешнему краю колеса (радиус - 55 пикселей)
                 ctx.translate(
                     center + Math.cos(angle + arc / 2) * (center - 55),
                     center + Math.sin(angle + arc / 2) * (center - 55)
                 );
                 ctx.rotate(angle + arc / 2 + Math.PI / 2);
 
-                // Получаем две строки для красивого переноса
                 const [line1, line2] = getLines(prizes[i]);
 
-                // Рисуем первую строку
                 ctx.fillText(line1, -ctx.measureText(line1).width / 2, -4);
-                // Рисуем вторую строку чуть ниже
                 ctx.fillText(line2, -ctx.measureText(line2).width / 2, 8);
                 
                 ctx.restore();
             }
+
+            // Рисуем золотой центр колеса (как медальон с цифрой 1 на картинке)
+            ctx.beginPath();
+            ctx.arc(center, center, 24, 0, 2 * Math.PI);
+            ctx.fillStyle = "#fbf8f2";
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#d4af37";
+            ctx.stroke();
+
+            // Текст внутри центрального круга
+            ctx.fillStyle = "#4a3b32";
+            ctx.font = "bold 14px Georgia, serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("1", center, center);
         }
 
         drawWheel();
 
-        // Функция вращения
+        // Функция вращения (полностью сохраняет всю логику бота)
         function spinWheel() {
             if (isSpinning) return;
             isSpinning = true;
@@ -180,16 +250,14 @@
             const btn = document.getElementById("spin-btn");
             btn.disabled = true;
 
-            // Выбираем случайный приз
             const prizeIndex = Math.floor(Math.random() * numPrizes);
             const selectedPrize = prizes[prizeIndex];
 
-            // Считаем угол остановки
-            const extraRounds = 5 * 2 * Math.PI; // 5 полных оборотов
+            const extraRounds = 5 * 2 * Math.PI;
             const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
             const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
 
-            const duration = 4000; // 4 секунды
+            const duration = 4000;
             const start = performance.now();
 
             function animate(time) {
@@ -204,10 +272,9 @@
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    // Колесо остановилось
                     document.getElementById("info").innerText = "🎉 Выиграно: " + selectedPrize;
                     
-                    // Отправляем данные боту (работает ровно так же, как и раньше)
+                    // Безопасно передаем данные боту
                     setTimeout(() => {
                         tg.sendData(selectedPrize);
                     }, 1200);
