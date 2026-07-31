@@ -92,14 +92,14 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Список твоих призов
+        // Список призов
         const prizes = [
             "Обнять админа 🤗",
             "Сфоткаться с директором 📸",
-            "СММ пылесосит вам прихожую 🧹",
-            "Мастер облизывает вашу пяточку 👅",
+            "СММ пылесосит прихожую 🧹",
+            "Мастер лижет пяточку 👅",
             "Вы кормите мастера 🍔",
-            "10 минут в душевой кабинке с СММ 🚿"
+            "10 мин в душе с СММ 🚿"
         ];
 
         // Цвета для секторов
@@ -114,7 +114,23 @@
         let currentAngle = 0;
         let isSpinning = false;
 
-        // Рисуем колесо с текстом
+        // Функция для разделения длинного текста на 2 строки
+        function getLines(text) {
+            const words = text.split(" ");
+            let line1 = "";
+            let line2 = "";
+            
+            for (let i = 0; i < words.length; i++) {
+                if (i < Math.ceil(words.length / 2)) {
+                    line1 += (line1 ? " " : "") + words[i];
+                } else {
+                    line2 += (line2 ? " " : "") + words[i];
+                }
+            }
+            return [line1, line2];
+        }
+
+        // Рисуем колесо с читаемым многострочным текстом
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -133,18 +149,23 @@
                 // Текст приза
                 ctx.save();
                 ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 11px sans-serif";
+                ctx.font = "bold 10px sans-serif";
+                
+                // Сдвигаем текст ближе к внешнему краю колеса (радиус - 55 пикселей)
                 ctx.translate(
-                    center + Math.cos(angle + arc / 2) * (center - 60),
-                    center + Math.sin(angle + arc / 2) * (center - 60)
+                    center + Math.cos(angle + arc / 2) * (center - 55),
+                    center + Math.sin(angle + arc / 2) * (center - 55)
                 );
                 ctx.rotate(angle + arc / 2 + Math.PI / 2);
+
+                // Получаем две строки для красивого переноса
+                const [line1, line2] = getLines(prizes[i]);
+
+                // Рисуем первую строку
+                ctx.fillText(line1, -ctx.measureText(line1).width / 2, -4);
+                // Рисуем вторую строку чуть ниже
+                ctx.fillText(line2, -ctx.measureText(line2).width / 2, 8);
                 
-                // Обрезаем длинный текст для колеса, чтобы влез
-                let text = prizes[i];
-                if (text.length > 18) text = text.substring(0, 16) + "..";
-                
-                ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
                 ctx.restore();
             }
         }
@@ -163,7 +184,7 @@
             const prizeIndex = Math.floor(Math.random() * numPrizes);
             const selectedPrize = prizes[prizeIndex];
 
-            // Считаем угол остановки (стрелка вверху = -90 градусов)
+            // Считаем угол остановки
             const extraRounds = 5 * 2 * Math.PI; // 5 полных оборотов
             const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
             const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
@@ -175,7 +196,6 @@
                 let progress = (time - start) / duration;
                 if (progress > 1) progress = 1;
 
-                // Замедление в конце (ease-out)
                 const easeOut = 1 - Math.pow(1 - progress, 3);
                 currentAngle = currentAngle + (targetAngle - currentAngle) * (easeOut * 0.05);
 
@@ -184,10 +204,10 @@
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    // Колесо остановилось!
+                    // Колесо остановилось
                     document.getElementById("info").innerText = "🎉 Выиграно: " + selectedPrize;
                     
-                    // Отправляем данные боту и закрываем
+                    // Отправляем данные боту (работает ровно так же, как и раньше)
                     setTimeout(() => {
                         tg.sendData(selectedPrize);
                     }, 1200);
