@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Колесо Сирены</title>
+    <title>Сокровища Сирен</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -18,35 +19,52 @@
             align-items: center;
         }
 
-        /* Карточка в стиле Таро с бежево-золотой рамкой */
+        /* Карточка в стиле Таро */
         .tarot-card {
             position: relative;
             background: #fcf8f2;
             border: 4px solid #d4be8a;
             border-radius: 20px;
-            padding: 20px 10px 15px 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 15px 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             max-width: 360px;
             width: 100%;
             box-sizing: border-box;
         }
+
+        /* Заголовок НАМ 1 ГОД сверху */
+        .card-header {
+            margin-bottom: -5px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #5c4033;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
         /* Контейнер для кота */
         .cat-banner {
             width: 100%;
             height: auto;
             display: flex;
             justify-content: center;
-            margin-bottom: -35px; /* Сдвигаем кота ниже, чтобы он лег на колесо */
+            margin-bottom: -500px;
+            /* Сдвигаем кота ниже, чтобы он лег на колесо */
             z-index: 20;
             position: relative;
         }
 
         .cat-banner img {
-            width: 130px; /* Увеличили кота в пикселях (или можешь поставить width: 140%) */
-            max-width: none; /* Разрешаем ему быть больше контейнера */
+            width: 500px;
+            /* Увеличили кота в пикселях (или можешь поставить width: 140%) */
+            max-width: none;
+            /* Разрешаем ему быть больше контейнера */
             height: auto;
             object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
         }
 
         /* Контейнер колеса */
@@ -74,10 +92,10 @@
         canvas {
             border-radius: 50%;
             border: 4px solid #d4be8a;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* Кнопка в винтажном стиле */
+        /* Кнопка */
         button {
             padding: 12px 26px;
             font-size: 16px;
@@ -89,7 +107,7 @@
             border-radius: 12px;
             cursor: pointer;
             margin-top: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             transition: 0.2s;
         }
 
@@ -111,21 +129,29 @@
             min-height: 40px;
         }
 
+        /* Футер со Студией Сирена */
         .card-footer {
             margin-top: 10px;
             font-size: 13px;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             color: #8c7a6b;
             text-transform: uppercase;
             border-top: 1px solid #ebdcc5;
             padding-top: 8px;
+            font-weight: bold;
         }
     </style>
 </head>
+
 <body>
 
     <div class="tarot-card">
-        <!-- Картинка кота с референса, наложенная сверху -->
+        <!-- Заголовок сверху -->
+        <div class="card-header">
+            <h2>🎉 Нам 1 год!</h2>
+        </div>
+
+        <!-- Кот -->
         <div class="cat-banner">
             <img src="cat_card.png" alt="Кот на колесе">
         </div>
@@ -139,8 +165,9 @@
 
         <div id="info"></div>
 
+        <!-- Надпись снизу -->
         <div class="card-footer">
-            WHEEL OF FORTUNE | КОЛЕСО СИРЕНЫ
+            СТУДИЯ СИРЕНА
         </div>
     </div>
 
@@ -148,7 +175,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Полные тексты призов
         const prizes = [
             "Обнять админа 🤗",
             "Сфоткаться с директором 📸",
@@ -158,10 +184,7 @@
             "10 мин в душе с СММ 🚿"
         ];
 
-        // Иконки для секторов
         const icons = ["🤗", "📸", "🧹", "👅", "🍔", "🚿"];
-
-        // Пастельные винтажные цвета секторов
         const colors = ["#f7ebd0", "#b5d4db", "#f5ccd4", "#c8e6c9", "#ffe082", "#d1c4e9"];
 
         const canvas = document.getElementById("wheel");
@@ -173,14 +196,13 @@
         let currentAngle = 0;
         let isSpinning = false;
 
-        // Рисуем колесо
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Секторы
+            // Секторы
             for (let i = 0; i < numPrizes; i++) {
                 const angle = currentAngle + i * arc;
-                
+
                 ctx.beginPath();
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.moveTo(center, center);
@@ -192,45 +214,42 @@
                 ctx.stroke();
             }
 
-            // 2. Иконки (статичные, не крутятся вместе с секторами)
+            // Иконки
             for (let i = 0; i < numPrizes; i++) {
                 const middleAngle = currentAngle + i * arc + arc / 2;
-                const distance = 78; 
-                
+                const distance = 78;
+
                 const x = center + Math.cos(middleAngle) * distance;
                 const y = center + Math.sin(middleAngle) * distance;
 
                 ctx.save();
                 ctx.translate(x, y);
-                
                 ctx.font = "26px sans-serif";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(icons[i], 0, 0);
-                
                 ctx.restore();
             }
 
-            // 3. Центральный круг
+            // Чистый центральный круг (без единицы)
             ctx.beginPath();
-            ctx.arc(center, center, 30, 0, 2 * Math.PI);
+            ctx.arc(center, center, 26, 0, 2 * Math.PI);
             ctx.fillStyle = "#fcf8f2";
             ctx.fill();
             ctx.strokeStyle = "#d4be8a";
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // Значок в центре
-            ctx.fillStyle = "#5c4033";
-            ctx.font = "bold 15px Georgia";
+            // Маленькое сердечко или иконка в центре колеса
+            ctx.fillStyle = "#d9534f";
+            ctx.font = "14px sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText("✨ 1", center, center);
+            ctx.fillText("❤️", center, center);
         }
 
         drawWheel();
 
-        // Функция вращения
         function spinWheel() {
             if (isSpinning) return;
             isSpinning = true;
@@ -242,11 +261,11 @@
             const prizeIndex = Math.floor(Math.random() * numPrizes);
             const selectedPrize = prizes[prizeIndex];
 
-            const extraRounds = 6 * 2 * Math.PI; 
+            const extraRounds = 6 * 2 * Math.PI;
             const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
             const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
 
-            const duration = 4500; 
+            const duration = 4500;
             const start = performance.now();
 
             function animate(time) {
@@ -262,7 +281,7 @@
                     requestAnimationFrame(animate);
                 } else {
                     document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #8c6d3b; font-size: 18px;">${selectedPrize}</span>`;
-                    
+
                     setTimeout(() => {
                         tg.sendData(selectedPrize);
                     }, 1500);
@@ -273,4 +292,5 @@
         }
     </script>
 </body>
+
 </html>
