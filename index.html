@@ -177,142 +177,159 @@
             console.log("Telegram WebApp не обнаружен, запуск в тест-режиме");
         }
 
-        const prizes = [
-            "Обнять админа 🤗",
-            "Сфоткаться с директором 📸",
-            "СММ пылесосит прихожую 🧹",
-            "Мастер лижет пяточку 👅",
-            "Вы кормите мастера 🍔",
-            "10 мин в душе с СММ 🚿"
-        ];
+        // Проверка времени окончания розыгрыша (сегодня, 31 июля 2026 года в 12:20)
+        const deadline = new Date("2026-07-31T12:20:00");
+        const now = new Date();
 
-        const icons = ["🤗", "📸", "🧹", "👅", "🍔", "🚿"];
-        const colors = ["#f7ebd0", "#b5d4db", "#f5ccd4", "#c8e6c9", "#ffe082", "#d1c4e9"];
+        if (now > deadline) {
+            // Если время вышло, заменяем содержимое карточки на заглушку
+            document.querySelector(".tarot-card").innerHTML = `
+                <div class="card-header" style="margin-top: 20px;">
+                    <h2>⏳ Розыгрыш окончен</h2>
+                </div>
+                <div style="padding: 40px 20px; font-size: 16px; color: #5c4033; line-height: 1.5;">
+                    К сожалению, время приема заявок и вращения колеса подошло к концу.<br><br>
+                    Спасибо всем за участие! ❤️
+                </div>
+                <div class="card-footer" style="margin-top: 20px;">
+                    СТУДИЯ СИРЕНА
+                </div>
+            `;
+        } else {
+            // Основной функционал колеса, если время еще не истекло
+            const prizes = [
+                "Обнять админа 🤗",
+                "Сфоткаться с директором 📸",
+                "СММ пылесосит прихожую 🧹",
+                "Мастер лижет пяточку 👅",
+                "Вы кормите мастера 🍔",
+                "10 мин в душе с СММ 🚿"
+            ];
 
-        // Настройка весов (вероятностей) для каждого приза по порядку:
-        // Сейчас шансы равны (везде по 10). Если захочешь изменить вероятность, просто меняй числа.
-        const weights = [10, 10, 10, 15, 35, 20];
+            const icons = ["🤗", "📸", "🧹", "👅", "🍔", "🚿"];
+            const colors = ["#f7ebd0", "#b5d4db", "#f5ccd4", "#c8e6c9", "#ffe082", "#d1c4e9"];
+            const weights = [10, 10, 10, 10, 10, 10];
 
-        function getRandomPrizeIndex() {
-            const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-            let randomNum = Math.random() * totalWeight;
-            
-            for (let i = 0; i < weights.length; i++) {
-                if (randomNum < weights[i]) {
-                    return i;
+            function getRandomPrizeIndex() {
+                const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+                let randomNum = Math.random() * totalWeight;
+                
+                for (let i = 0; i < weights.length; i++) {
+                    if (randomNum < weights[i]) {
+                        return i;
+                    }
+                    randomNum -= weights[i];
                 }
-                randomNum -= weights[i];
+                return 0;
             }
-            return 0;
-        }
 
-        const canvas = document.getElementById("wheel");
-        const ctx = canvas.getContext("2d");
-        const center = canvas.width / 2;
-        const numPrizes = prizes.length;
-        const arc = (2 * Math.PI) / numPrizes;
+            const canvas = document.getElementById("wheel");
+            const ctx = canvas.getContext("2d");
+            const center = canvas.width / 2;
+            const numPrizes = prizes.length;
+            const arc = (2 * Math.PI) / numPrizes;
 
-        let currentAngle = 0;
-        let isSpinning = false;
+            let currentAngle = 0;
+            let isSpinning = false;
 
-        function drawWheel() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            function drawWheel() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            for (let i = 0; i < numPrizes; i++) {
-                const angle = currentAngle + i * arc;
+                for (let i = 0; i < numPrizes; i++) {
+                    const angle = currentAngle + i * arc;
+
+                    ctx.beginPath();
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.moveTo(center, center);
+                    ctx.arc(center, center, center - 4, angle, angle + arc);
+                    ctx.lineTo(center, center);
+                    ctx.fill();
+                    ctx.strokeStyle = "#d4be8a";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                for (let i = 0; i < numPrizes; i++) {
+                    const middleAngle = currentAngle + i * arc + arc / 2;
+                    const distance = 78;
+
+                    const x = center + Math.cos(middleAngle) * distance;
+                    const y = center + Math.sin(middleAngle) * distance;
+
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.font = "26px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(icons[i], 0, 0);
+                    ctx.restore();
+                }
 
                 ctx.beginPath();
-                ctx.fillStyle = colors[i % colors.length];
-                ctx.moveTo(center, center);
-                ctx.arc(center, center, center - 4, angle, angle + arc);
-                ctx.lineTo(center, center);
+                ctx.arc(center, center, 26, 0, 2 * Math.PI);
+                ctx.fillStyle = "#fcf8f2";
                 ctx.fill();
                 ctx.strokeStyle = "#d4be8a";
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 3;
                 ctx.stroke();
-            }
 
-            for (let i = 0; i < numPrizes; i++) {
-                const middleAngle = currentAngle + i * arc + arc / 2;
-                const distance = 78;
-
-                const x = center + Math.cos(middleAngle) * distance;
-                const y = center + Math.sin(middleAngle) * distance;
-
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.font = "26px sans-serif";
+                ctx.fillStyle = "#d9534f";
+                ctx.font = "14px sans-serif";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(icons[i], 0, 0);
-                ctx.restore();
+                ctx.fillText("❤️", center, center);
             }
 
-            ctx.beginPath();
-            ctx.arc(center, center, 26, 0, 2 * Math.PI);
-            ctx.fillStyle = "#fcf8f2";
-            ctx.fill();
-            ctx.strokeStyle = "#d4be8a";
-            ctx.lineWidth = 3;
-            ctx.stroke();
+            drawWheel();
 
-            ctx.fillStyle = "#d9534f";
-            ctx.font = "14px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("❤️", center, center);
-        }
+            document.getElementById("spin-btn").addEventListener("click", spinWheel);
 
-        drawWheel();
+            function spinWheel() {
+                if (isSpinning) return;
+                isSpinning = true;
 
-        document.getElementById("spin-btn").addEventListener("click", spinWheel);
+                const btn = document.getElementById("spin-btn");
+                btn.disabled = true;
+                document.getElementById("info").innerText = "";
 
-        function spinWheel() {
-            if (isSpinning) return;
-            isSpinning = true;
+                const prizeIndex = getRandomPrizeIndex();
+                const selectedPrize = prizes[prizeIndex];
 
-            const btn = document.getElementById("spin-btn");
-            btn.disabled = true;
-            document.getElementById("info").innerText = "";
+                const extraRounds = 6 * 2 * Math.PI;
+                const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
+                const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
 
-            // Выбираем приз с учетом весов
-            const prizeIndex = getRandomPrizeIndex();
-            const selectedPrize = prizes[prizeIndex];
+                const duration = 4000;
+                const start = performance.now();
 
-            const extraRounds = 6 * 2 * Math.PI;
-            const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
-            const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
+                function animate(time) {
+                    let progress = (time - start) / duration;
+                    if (progress > 1) progress = 1;
 
-            const duration = 4000;
-            const start = performance.now();
+                    currentAngle += (targetAngle - currentAngle) * 0.1;
 
-            function animate(time) {
-                let progress = (time - start) / duration;
-                if (progress > 1) progress = 1;
-
-                currentAngle += (targetAngle - currentAngle) * 0.1;
-
-                drawWheel();
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    currentAngle = targetAngle;
                     drawWheel();
 
-                    document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #8c6d3b; font-size: 18px;">${selectedPrize}</span>`;
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        currentAngle = targetAngle;
+                        drawWheel();
 
-                    setTimeout(() => {
-                        if (tg && tg.sendData) {
-                            tg.sendData(selectedPrize);
-                        } else {
-                            console.log("Приз выпал:", selectedPrize);
-                        }
-                    }, 500);
+                        document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #8c6d3b; font-size: 18px;">${selectedPrize}</span>`;
+
+                        setTimeout(() => {
+                            if (tg && tg.sendData) {
+                                tg.sendData(selectedPrize);
+                            } else {
+                                console.log("Приз выпал:", selectedPrize);
+                            }
+                        }, 500);
+                    }
                 }
-            }
 
-            requestAnimationFrame(animate);
+                requestAnimationFrame(animate);
+            }
         }
     </script>
 </body>
