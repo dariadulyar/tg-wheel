@@ -3,129 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сокровища Сирен - Wheel of Fortune</title>
+    <title>Сокровища Сирен</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Georgia', serif;
             text-align: center;
-            background-color: #141d26;
-            color: #ffffff;
+            background-color: #dbe4dc;
+            color: #2c3e50;
             margin: 0;
-            padding: 15px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        h2 { 
-            margin-bottom: 2px; 
-            color: #f39c12;
-            letter-spacing: 1px;
-        }
-
-        .subtitle {
-            color: #95a5a6;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        /* Контейнер для котика и колеса */
-        .wheel-card {
+        /* Карточный стиль в духе Таро */
+        .tarot-card {
             position: relative;
-            background: linear-gradient(135deg, #2c3e50, #1a252f);
-            border: 3px solid #d4af37; /* Золотая рамка в стиле карт */
-            border-radius: 20px;
-            padding: 20px 10px 15px 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            max-width: 350px;
+            background: #f4ebd0;
+            border: 4px solid #b89742;
+            border-radius: 16px;
+            padding: 15px 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            max-width: 340px;
             width: 100%;
             box-sizing: border-box;
         }
 
-        /* Котик сверху */
-        .cat-container {
-            width: 110px;
-            height: 90px;
-            margin: -35px auto 5px auto;
-            background-image: url('cat.png'); /* Если хочешь загрузить картинку котика локально */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        h2 { 
+            margin: 5px 0 0 0; 
+            color: #5c4033;
+            font-size: 22px;
+            letter-spacing: 1px;
         }
 
-        /* Контейнер колеса и стрелки */
+        .subtitle {
+            color: #8c6d53;
+            font-size: 13px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Котик сверху на колесе */
+        .cat-top {
+            font-size: 42px;
+            margin-bottom: -18px;
+            z-index: 20;
+            position: relative;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+        }
+
+        /* Контейнер колеса */
         .wheel-container {
             position: relative;
             width: 280px;
             height: 280px;
-            margin: 10px auto;
+            margin: 5px auto;
         }
 
-        /* Указатель (стрелка сверху) */
+        /* Стрелка сверху */
         .pointer {
             position: absolute;
-            top: -12px;
+            top: -6px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-top: 22px solid #e74c3c;
-            z-index: 10;
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 18px solid #c0392b;
+            z-index: 30;
         }
 
         canvas {
             border-radius: 50%;
-            border: 4px solid #f1c40f;
-            box-shadow: 0 0 15px rgba(241, 196, 15, 0.3);
+            border: 5px solid #b89742;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
+        /* Кнопка в ретро-стиле */
         button {
-            padding: 12px 26px;
+            padding: 12px 24px;
             font-size: 16px;
             font-weight: bold;
-            background: linear-gradient(135deg, #f39c12, #d35400);
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #c5a059, #8c6d53);
             color: #ffffff;
-            border: none;
-            border-radius: 12px;
+            border: 2px solid #5c4033;
+            border-radius: 10px;
             cursor: pointer;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             transition: 0.2s;
         }
 
         button:active {
-            transform: scale(0.96);
+            transform: scale(0.97);
         }
 
         button:disabled {
-            background: #555;
-            box-shadow: none;
+            background: #95a5a6;
+            border-color: #7f8c8d;
             cursor: not-allowed;
         }
 
         #info {
-            margin-top: 15px;
-            font-size: 18px;
+            margin-top: 10px;
+            font-size: 16px;
             font-weight: bold;
-            color: #2ecc71;
+            color: #27ae60;
             min-height: 40px;
-            padding: 0 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="wheel-card">
-        <!-- Опционально: котик сверху в стиле ретро-карты -->
-        <div style="font-size: 45px; margin-bottom: -10px;" title="Ваш пушистый проводник">🐱</div>
-        
+    <div class="tarot-card">
+        <!-- Котик-наблюдатель на верхушке колеса -->
+        <div class="cat-top">🐱</div>
+
         <h2>Сокровища Сирен</h2>
         <div class="subtitle">Wheel of Fortune</div>
 
@@ -143,7 +141,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Полные тексты призов (которые отправятся боту)
+        // Полные тексты призов
         const prizes = [
             "Обнять админа 🤗",
             "Сфоткаться с директором 📸",
@@ -153,11 +151,11 @@
             "10 мин в душе с СММ 🚿"
         ];
 
-        // Только символы/эмодзи для секторов колеса, чтобы они выглядели идеально чисто
+        // Иконки для секторов
         const icons = ["🤗", "📸", "🧹", "👅", "🍔", "🚿"];
 
-        // Винтажные премиальные цвета секторов
-        const colors = ["#2c3e50", "#16a085", "#d35400", "#8e44ad", "#2980b9", "#c0392b"];
+        // Винтажные пастельные цвета секций в стиле карт
+        const colors = ["#f3d9b1", "#a2d2df", "#ffafcc", "#bdefac", "#ffd166", "#e2ece9"];
 
         const canvas = document.getElementById("wheel");
         const ctx = canvas.getContext("2d");
@@ -168,40 +166,61 @@
         let currentAngle = 0;
         let isSpinning = false;
 
-        // Рисуем колесо с крупными иконками по центру секторов
+        // Рисуем колесо
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // 1. Рисуем секторы
             for (let i = 0; i < numPrizes; i++) {
                 const angle = currentAngle + i * arc;
                 
-                // Сектор
                 ctx.beginPath();
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.moveTo(center, center);
-                ctx.arc(center, center, center - 4, angle, angle + arc);
+                ctx.arc(center, center, center - 5, angle, angle + arc);
                 ctx.lineTo(center, center);
                 ctx.fill();
-                ctx.strokeStyle = "#f1c40f";
+                ctx.strokeStyle = "#b89742";
                 ctx.lineWidth = 2;
                 ctx.stroke();
+            }
 
-                // Иконка (эмодзи) на секторе
-                ctx.save();
-                ctx.translate(
-                    center + Math.cos(angle + arc / 2) * (center - 65),
-                    center + Math.sin(angle + arc / 2) * (center - 65)
-                );
-                ctx.rotate(angle + arc / 2 + Math.PI / 2);
+            // 2. Рисуем иконки строго вертикально (они НЕ крутятся вместе с секторами)
+            for (let i = 0; i < numPrizes; i++) {
+                // Центр каждого сектора по углам
+                const middleAngle = currentAngle + i * arc + arc / 2;
+                const distance = 75; // Расстояние от центра до иконки
                 
-                // Делаем смайлики крупными и читаемыми
-                ctx.font = "30px sans-serif";
+                const x = center + Math.cos(middleAngle) * distance;
+                const y = center + Math.sin(middleAngle) * distance;
+
+                ctx.save();
+                ctx.translate(x, y);
+                
+                // Рендерим иконку всегда прямо
+                ctx.font = "26px sans-serif";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(icons[i], 0, 0);
                 
                 ctx.restore();
             }
+
+            // 3. Центральный круг в стиле ретро-карты с короной/цифрой
+            ctx.beginPath();
+            ctx.arc(center, center, 32, 0, 2 * Math.PI);
+            ctx.fillStyle = "#f4ebd0";
+            ctx.fill();
+            ctx.strokeStyle = "#b89742";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Текст/цифра в центре
+            ctx.fillStyle = "#5c4033";
+            ctx.font = "bold 16px Georgia";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("👑 1", center, center);
         }
 
         drawWheel();
@@ -215,23 +234,20 @@
             btn.disabled = true;
             document.getElementById("info").innerText = "";
 
-            // Выбираем случайный сектор
             const prizeIndex = Math.floor(Math.random() * numPrizes);
             const selectedPrize = prizes[prizeIndex];
 
-            // Рассчитываем физику вращения
-            const extraRounds = 6 * 2 * Math.PI; // 6 полных оборотов
+            const extraRounds = 6 * 2 * Math.PI; 
             const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
             const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
 
-            const duration = 4500; // 4.5 секунды
+            const duration = 4500; 
             const start = performance.now();
 
             function animate(time) {
                 let progress = (time - start) / duration;
                 if (progress > 1) progress = 1;
 
-                // Плавное затухание (ease-out)
                 const easeOut = 1 - Math.pow(1 - progress, 3);
                 currentAngle = currentAngle + (targetAngle - currentAngle) * (easeOut * 0.05);
 
@@ -240,10 +256,9 @@
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    // Колесо остановилось — показываем расшифровку!
-                    document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #f1c40f; font-size: 20px;">${selectedPrize}</span>`;
+                    // Результат
+                    document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #8c6d53; font-size: 18px;">${selectedPrize}</span>`;
                     
-                    // Передаем точный текст приза в Telegram-бота с небольшой задержкой
                     setTimeout(() => {
                         tg.sendData(selectedPrize);
                     }, 1500);
