@@ -32,9 +32,9 @@
             box-sizing: border-box;
         }
 
-        /* Заголовок НАМ 1 ГОД сверху */
+        /* Заголовок сверху */
         .card-header {
-            margin-bottom: -5px;
+            margin-bottom: 5px;
         }
 
         .card-header h2 {
@@ -45,13 +45,14 @@
             text-transform: uppercase;
         }
 
-        /* Контейнер для кота (размеры не трогаем) */
+        /* Контейнер для кота (исправили слишком большой отступ на аккуратный) */
         .cat-banner {
             width: 100%;
             height: auto;
             display: flex;
             justify-content: center;
-            margin-bottom: -500px;
+            margin-top: -10px;
+            margin-bottom: -35px;
             z-index: 20;
             position: relative;
         }
@@ -106,6 +107,8 @@
             margin-top: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             transition: 0.2s;
+            position: relative;
+            z-index: 40; /* Гарантирует, что кнопка кликабельна поверх других слоев */
         }
 
         button:active {
@@ -126,7 +129,7 @@
             min-height: 40px;
         }
 
-        /* Футер со Студией Сирена */
+        /* Футер */
         .card-footer {
             margin-top: 10px;
             font-size: 13px;
@@ -143,12 +146,10 @@
 <body>
 
     <div class="tarot-card">
-        <!-- Заголовок сверху -->
         <div class="card-header">
             <h2>🎉 Нам 1 год!</h2>
         </div>
 
-        <!-- Кот -->
         <div class="cat-banner">
             <img src="cat_card.png" alt="Кот на колесе">
         </div>
@@ -158,19 +159,24 @@
             <canvas id="wheel" width="290" height="290"></canvas>
         </div>
 
-        <button id="spin-btn" onclick="spinWheel()">Испытать удачу 🎡</button>
+        <!-- Убрали конфликтный inline onclick, вешаем событие надежно через JS -->
+        <button id="spin-btn">Испытать удачу 🎡</button>
 
         <div id="info"></div>
 
-        <!-- Надпись снизу -->
         <div class="card-footer">
             СТУДИЯ СИРЕНА
         </div>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        let tg = null;
+        try {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+        } catch (e) {
+            console.log("Telegram WebApp не обнаружен, запуск в тест-режиме");
+        }
 
         const prizes = [
             "Обнять админа 🤗",
@@ -196,7 +202,6 @@
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Секторы
             for (let i = 0; i < numPrizes; i++) {
                 const angle = currentAngle + i * arc;
 
@@ -211,7 +216,6 @@
                 ctx.stroke();
             }
 
-            // Иконки
             for (let i = 0; i < numPrizes; i++) {
                 const middleAngle = currentAngle + i * arc + arc / 2;
                 const distance = 78;
@@ -228,7 +232,6 @@
                 ctx.restore();
             }
 
-            // Центральный круг
             ctx.beginPath();
             ctx.arc(center, center, 26, 0, 2 * Math.PI);
             ctx.fillStyle = "#fcf8f2";
@@ -246,6 +249,9 @@
 
         drawWheel();
 
+        // Надежная привязка клика через JS
+        document.getElementById("spin-btn").addEventListener("click", spinWheel);
+
         function spinWheel() {
             if (isSpinning) return;
             isSpinning = true;
@@ -261,35 +267,35 @@
             const prizeAngle = (2 * Math.PI) - (prizeIndex * arc) - (arc / 2) - (Math.PI / 2);
             const targetAngle = currentAngle + extraRounds + (prizeAngle - (currentAngle % (2 * Math.PI)));
 
-            const duration = 4500;
+            const duration = 4000;
             const start = performance.now();
 
             function animate(time) {
                 let progress = (time - start) / duration;
                 if (progress > 1) progress = 1;
 
-                // Исправленная формула интерполяции: корректное замедление к концу анимации
                 const easeOut = 1 - Math.pow(1 - progress, 3);
-                currentAngle = currentAngle + (targetAngle - currentAngle) * (progress === 1 ? 1 : 0.15); 
+                // Плавное движение к целевому углу
+                currentAngle += (targetAngle - currentAngle) * 0.1;
 
                 drawWheel();
 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    currentAngle = targetAngle; // Финальная доводка точно до угла
+                    currentAngle = targetAngle;
                     drawWheel();
-                    
+
                     document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #8c6d3b; font-size: 18px;">${selectedPrize}</span>`;
 
-                    // Безопасная отправка данных для Telegram и браузера
+                    // Отправка данных или вывод в консоль
                     setTimeout(() => {
-                        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.query_id) {
+                        if (tg && tg.sendData) {
                             tg.sendData(selectedPrize);
                         } else {
-                            console.log("Приз успешно выпал:", selectedPrize);
+                            console.log("Приз выпал:", selectedPrize);
                         }
-                    }, 1000);
+                    }, 500);
                 }
             }
 
