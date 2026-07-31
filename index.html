@@ -19,14 +19,14 @@
             align-items: center;
         }
 
-/* Карточка в стиле Таро */
+        /* Карточка в стиле Таро */
         .tarot-card {
             position: relative;
             background: #fcf8f2;
             border: 4px solid #d4be8a;
             border-radius: 20px;
             padding: 15px 10px;
-            padding-top: 15px; /* Увеличили отступ сверху, чтобы надпись «Нам 1 год!» опустилась ниже */
+            padding-top: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             max-width: 360px;
             width: 100%;
@@ -47,15 +47,15 @@
             text-transform: uppercase;
         }
 
-        /* Кот через абсолютное позиционирование — теперь он сядет куда скажем */
+        /* Кот через абсолютное позиционирование */
         .cat-banner {
             position: absolute;
-            top: -80px; /* Регулируй это число, чтобы опустить/поднять кота относительно верха карточки */
+            top: -80px;
             left: 50%;
             transform: translateX(-50%);
-            width: 480px; /* Твой любимый размер */
+            width: 480px;
             z-index: 20;
-            pointer-events: none; /* Чтобы кот не перекрывал клики, если попадет на кнопку */
+            pointer-events: none;
         }
 
         .cat-banner img {
@@ -65,12 +65,12 @@
             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
         }
 
-        /* Контейнер колеса (добавили отступ сверху, чтобы освободить место под кота) */
+        /* Контейнер колеса */
         .wheel-container {
             position: relative;
             width: 290px;
             height: 290px;
-            margin: 95px auto 0 auto; /* Отодвигаем колесо вниз, чтобы кот лег на него сверху */
+            margin: 95px auto 0 auto;
         }
 
         /* Стрелка сверху */
@@ -150,7 +150,6 @@
             <h2>🎉 Нам 1 год!</h2>
         </div>
 
-        <!-- Кот сидит абсолютно поверх карточки -->
         <div class="cat-banner">
             <img src="cat_card.png" alt="Кот на колесе">
         </div>
@@ -189,6 +188,23 @@
 
         const icons = ["🤗", "📸", "🧹", "👅", "🍔", "🚿"];
         const colors = ["#f7ebd0", "#b5d4db", "#f5ccd4", "#c8e6c9", "#ffe082", "#d1c4e9"];
+
+        // Настройка весов (вероятностей) для каждого приза по порядку:
+        // Сейчас шансы равны (везде по 10). Если захочешь изменить вероятность, просто меняй числа.
+        const weights = [10, 10, 10, 10, 10, 10];
+
+        function getRandomPrizeIndex() {
+            const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+            let randomNum = Math.random() * totalWeight;
+            
+            for (let i = 0; i < weights.length; i++) {
+                if (randomNum < weights[i]) {
+                    return i;
+                }
+                randomNum -= weights[i];
+            }
+            return 0;
+        }
 
         const canvas = document.getElementById("wheel");
         const ctx = canvas.getContext("2d");
@@ -259,7 +275,8 @@
             btn.disabled = true;
             document.getElementById("info").innerText = "";
 
-            const prizeIndex = Math.floor(Math.random() * numPrizes);
+            // Выбираем приз с учетом весов
+            const prizeIndex = getRandomPrizeIndex();
             const selectedPrize = prizes[prizeIndex];
 
             const extraRounds = 6 * 2 * Math.PI;
