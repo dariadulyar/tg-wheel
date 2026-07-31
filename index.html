@@ -45,23 +45,20 @@
             text-transform: uppercase;
         }
 
-        /* Контейнер для кота */
+        /* Контейнер для кота (размеры не трогаем) */
         .cat-banner {
             width: 100%;
             height: auto;
             display: flex;
             justify-content: center;
             margin-bottom: -500px;
-            /* Сдвигаем кота ниже, чтобы он лег на колесо */
             z-index: 20;
             position: relative;
         }
 
         .cat-banner img {
             width: 500px;
-            /* Увеличили кота в пикселях (или можешь поставить width: 140%) */
             max-width: none;
-            /* Разрешаем ему быть больше контейнера */
             height: auto;
             object-fit: contain;
             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
@@ -231,7 +228,7 @@
                 ctx.restore();
             }
 
-            // Чистый центральный круг (без единицы)
+            // Центральный круг
             ctx.beginPath();
             ctx.arc(center, center, 26, 0, 2 * Math.PI);
             ctx.fillStyle = "#fcf8f2";
@@ -240,7 +237,6 @@
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // Маленькое сердечко или иконка в центре колеса
             ctx.fillStyle = "#d9534f";
             ctx.font = "14px sans-serif";
             ctx.textAlign = "center";
@@ -272,19 +268,28 @@
                 let progress = (time - start) / duration;
                 if (progress > 1) progress = 1;
 
+                // Исправленная формула интерполяции: корректное замедление к концу анимации
                 const easeOut = 1 - Math.pow(1 - progress, 3);
-                currentAngle = currentAngle + (targetAngle - currentAngle) * (easeOut * 0.05);
+                currentAngle = currentAngle + (targetAngle - currentAngle) * (progress === 1 ? 1 : 0.15); 
 
                 drawWheel();
 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
+                    currentAngle = targetAngle; // Финальная доводка точно до угла
+                    drawWheel();
+                    
                     document.getElementById("info").innerHTML = `🎉 Ваш приз:<br><span style="color: #8c6d3b; font-size: 18px;">${selectedPrize}</span>`;
 
+                    // Безопасная отправка данных для Telegram и браузера
                     setTimeout(() => {
-                        tg.sendData(selectedPrize);
-                    }, 1500);
+                        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.query_id) {
+                            tg.sendData(selectedPrize);
+                        } else {
+                            console.log("Приз успешно выпал:", selectedPrize);
+                        }
+                    }, 1000);
                 }
             }
 
